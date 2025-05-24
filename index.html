@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AI Recipe Chef Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+        :root {
+            --font-primary: 'Inter', sans-serif;
+            --font-secondary: 'Lora', serif;
+            
+            /* Light Theme (Default) */
+            --bg-color: #f0f2f5; /* Slightly adjusted for neumorphism base */
+            --surface-color: #ffffff; /* For elements that need to stand out from bg-color */
+            --primary-accent: #ff6f61;
+            --secondary-accent: #00796b;
+            --text-primary: #2c3e50;
+            --text-secondary: #576574;
+            --border-color: #d1d9e6; /* Adjusted for neumorphic context */
+            --shadow-color: rgba(44, 62, 80, 0.08); /* Retained for non-neumorphic subtle shadows */
+            --code-bg: #e9edf0;
+            --code-text: #c7254e;
+            --link-color: var(--primary-accent);
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+            --input-bg: var(--bg-color); /* Aligned with bg for neumorphic input */
+            --header-bg: linear-gradient(135deg, var(--primary-accent), #ff8a50);
+            --button-text: #ffffff;
+            --icon-color: #576574;
+            --icon-hover-color: var(--primary-accent);
+            --callout-tip-bg: #e0f2f1;
+            --callout-tip-border: #4db6ac;
+            --callout-note-bg: #fff3e0;
+            --callout-note-border: #ffb74d;
+            --callout-info-bg: #e3f2fd;
+            --callout-info-border: #64b5f6;
+            --disabled-opacity: 0.6;
+
+            /* Neumorphism Variables - Light Theme */
+            --neumorphic-shadow-light: -6px -6px 12px #ffffff;
+            --neumorphic-shadow-dark: 6px 6px 12px #d1d9e6;
+            --neumorphic-shadow-inset-light: inset -4px -4px 8px #ffffff;
+            --neumorphic-shadow-inset-dark: inset 4px 4px 8px #d1d9e6;
+            
+            --neumorphic-shadow-icon-light: -3px -3px 6px #ffffff;
+            --neumorphic-shadow-icon-dark: 3px 3px 6px #d1d9e6;
+            --neumorphic-shadow-icon-inset-light: inset -2px -2px 4px #ffffff;
+            --neumorphic-shadow-icon-inset-dark: inset 2px 2px 4px #d1d9e6;
+        }
+
+        html.dark-theme {
+            --bg-color: #2c303a; /* Adjusted for neumorphism base */
+            --surface-color: #353943; /* For elements that need to stand out */
+            --primary-accent: #ff8a50;
+            --secondary-accent: #26a69a; 
+            --text-primary: #e0e7ef; 
+            --text-secondary: #a0aec0;
+            --border-color: #404552; /* Adjusted */
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --code-bg: #23252d;
+            --code-text: #ffA0A0; 
+            --input-bg: var(--bg-color); /* Aligned with bg for neumorphic input */
+            --header-bg: linear-gradient(135deg, var(--primary-accent), #ff6f61);
+            --callout-tip-bg: #2c3a39; --callout-tip-border: #26a69a;
+            --callout-note-bg: #43352c; --callout-note-border: #ffb74d;
+            --callout-info-bg: #2c3543; --callout-info-border: #64b5f6;
+
+            /* Neumorphism Variables - Dark Theme */
+            --neumorphic-shadow-light: -6px -6px 12px #3a3e4a; /* Lighter than bg */
+            --neumorphic-shadow-dark: 6px 6px 12px #1e222a;   /* Darker than bg */
+            --neumorphic-shadow-inset-light: inset -4px -4px 8px #3a3e4a;
+            --neumorphic-shadow-inset-dark: inset 4px 4px 8px #1e222a;
+
+            --neumorphic-shadow-icon-light: -3px -3px 6px #3a3e4a;
+            --neumorphic-shadow-icon-dark: 3px 3px 6px #1e222a;
+            --neumorphic-shadow-icon-inset-light: inset -2px -2px 4px #3a3e4a;
+            --neumorphic-shadow-icon-inset-dark: inset 2px 2px 4px #1e222a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: var(--font-primary); background-color: var(--bg-color); color: var(--text-primary);
+            line-height: 1.7; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; margin: 0; transition: background-color 0.3s, color 0.3s;
+            font-size: clamp(14px, calc(14px + 0.25vw), 16px); overflow: hidden;
+        }
+
+        .container {
+            background-color: var(--bg-color); /* Neumorphic base */
+            border-radius: 20px; /* Softer radius for neumorphism */
+            box-shadow: var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light); /* Neumorphic shadow */
+            width: clamp(320px, 95vw, 900px); height: clamp(480px, 90vh, 800px);
+            max-height: 90vh; display: flex; flex-direction: column;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin: clamp(10px, 2vh, 20px) clamp(10px, 2vw, 20px);
+            position: relative; overflow: hidden;
+        }
+
+        header {
+            background: var(--header-bg); color: var(--button-text);
+            padding: clamp(12px, 2vw, 18px) clamp(15px, 2.5vw, 25px);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0; position: relative; z-index: 2;
+            border-top-left-radius: 20px; /* Match container */
+            border-top-right-radius: 20px; /* Match container */
+        }
+        header h1 { font-size: clamp(1.2em, 3vw, 1.7em); font-weight: 600; letter-spacing: 0.5px; }
+        .header-actions { display: flex; align-items: center; gap: clamp(10px, 1.5vw, 15px); }
+        .header-actions .icon-button {
+            background: transparent; border: none; color: var(--button-text);
+            font-size: clamp(1.2em, 2.5vw, 1.5em); cursor: pointer;
+            opacity: 0.9; transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+            padding: 8px; border-radius: 50%; /* Circle for neumorphic buttons */
+            display: flex; align-items: center; justify-content: center;
+            width: clamp(38px, 5vw, 44px); height: clamp(38px, 5vw, 44px);
+             /* Neumorphic shadow on header buttons needs to be against their effective background (gradient)
+               This is tricky, so for header buttons, a simpler hover effect might be better or a very subtle shadow.
+               Let's use a simpler opacity/transform for now on header buttons, as neumorphism is best on flat color.
+             */
+        }
+         .header-actions .icon-button:hover { opacity: 1; transform: scale(1.1); }
+         .header-actions .icon-button:active { transform: scale(0.95); }
+        .header-actions .icon-button:disabled { opacity: var(--disabled-opacity); cursor: not-allowed; transform: none; box-shadow: none; }
+
+
+        .chat-window {
+            flex-grow: 1; padding: clamp(15px, 2vw, 25px); overflow-y: auto;
+            scroll-behavior: smooth; background-color: var(--bg-color); /* Match container for consistent neumorphism base */
+            position: relative; min-height: 0; z-index: 1;
+        }
+
+        .message { margin-bottom: clamp(15px, 2vh, 20px); display: flex; flex-direction: column; opacity: 0; transform: translateY(15px); animation: messageFadeIn 0.4s ease-out forwards; }
+        @keyframes messageFadeIn { to { opacity: 1; transform: translateY(0); } }
+        .message-bubble { 
+            padding: clamp(10px, 1.5vw, 12px) clamp(12px, 2vw, 18px); 
+            border-radius: 18px; /* Slightly softer radius */
+            max-width: 85%; word-wrap: break-word; 
+            position: relative; font-size: clamp(0.85em, 1.8vw, 1em);
+            transition: background-color 0.3s, box-shadow 0.3s, color 0.3s;
+        }
+        .message.user .message-bubble { 
+            background: var(--primary-accent); color: var(--button-text); 
+            margin-left: auto; border-bottom-right-radius: 6px; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1); /* Softer shadow for user bubble */
+        }
+        .message.ai .message-bubble { 
+            background-color: var(--bg-color); /* Neumorphic base */
+            color: var(--text-primary); 
+            margin-right: auto; border-bottom-left-radius: 6px;
+            box-shadow: var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light); /* Neumorphic shadow */
+            border: none; /* Remove border for pure neumorphic look */
+        }
+        .message-content img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid var(--border-color); display: block; }
+        .message-content audio { width: 100%; margin-top: 10px; border-radius: 5px; }
+        .message .timestamp { font-size: clamp(0.7em, 1.2vw, 0.75em); color: var(--text-secondary); margin-top: 8px; }
+        .message.user .timestamp { text-align: right; } .message.ai .timestamp { text-align: left; }
+        .message-actions { display: flex; gap: 8px; margin-top: 8px; visibility: hidden; opacity: 0; transition: visibility 0s .1s, opacity .1s; }
+        .message:hover .message-actions { visibility: visible; opacity: 1; transition-delay: 0s; }
+        .message.user .message-actions { justify-content: flex-end; } .message.ai .message-actions { justify-content: flex-start; }
+        .message-actions .icon-button { background:none; border:none; font-size: clamp(0.8em, 1.5vw, 0.9em); color: var(--text-secondary); cursor:pointer; transition: color 0.2s, transform 0.2s; padding:3px; border-radius: 50%;}
+        .message-actions .icon-button:hover { color: var(--primary-accent); transform: scale(1.1); }
+
+        /* Markdown Styles */
+        .message-content strong, .message-content b { font-weight: 600; } .message-content em, .message-content i { font-style: italic; }
+        .message-content s, .message-content del { text-decoration: line-through; }
+        .message-content a { color: var(--link-color); text-decoration: none; font-weight: 500; } .message-content a:hover { text-decoration: underline; }
+        .message-content ul, .message-content ol { margin-left: 25px; margin-top: 8px; margin-bottom: 8px; padding-left: 0; }
+        .message-content ul li, .message-content ol li { margin-bottom: 4px; }
+        .message-content h1, .message-content h2, .message-content h3 { margin-top: 15px; margin-bottom: 8px; font-family: var(--font-secondary); color: var(--primary-accent); font-weight:600; }
+        .message-content h1 { font-size: clamp(1.4em, 2.8vw, 1.6em); } .message-content h2 { font-size: clamp(1.2em, 2.5vw, 1.4em); } .message-content h3 { font-size: clamp(1.0em, 2.2vw, 1.2em); }
+        .message-content pre { background-color: var(--code-bg); color: var(--code-text); padding: 15px; border-radius: 8px; overflow-x: auto; margin: 10px 0; font-family: 'Courier New', Courier, monospace; font-size: clamp(0.8em, 1.4vw, 0.9em); border: 1px solid var(--border-color); box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light); }
+        .message-content code:not(pre code) { background-color: var(--code-bg); color: var(--code-text); padding: 2px 5px; border-radius: 4px; font-size: clamp(0.75em, 1.3vw, 0.85em); }
+        .message-content blockquote { border-left: 3px solid var(--primary-accent); padding-left: 15px; margin: 10px 0; color: var(--text-secondary); font-style: italic; background-color: color-mix(in srgb, var(--bg-color) 95%, var(--text-primary) 5%); }
+        .message-content hr { border: 0; border-top: 1px solid var(--border-color); margin: 15px 0; }
+
+        /* Custom Markdown Styles */
+        .custom-md-recipe-title { display: block; background: linear-gradient(to right, var(--primary-accent), var(--secondary-accent)); color: var(--button-text); padding: 12px 18px; border-radius: 10px; font-size: clamp(1.3em, 2.6vw, 1.5em); font-family: var(--font-secondary); margin: 15px 0; text-align: center; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .custom-md-section-header { display: block; font-size: clamp(1.1em, 2.4vw, 1.3em); color: var(--secondary-accent); font-family: var(--font-secondary); font-weight: 600; margin-top: 20px; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid var(--secondary-accent); }
+        .custom-md-callout { padding: 12px 15px; margin: 15px 0; border-left-width: 4px; border-left-style: solid; border-radius: 8px; box-shadow: var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light); background-color: var(--bg-color);} /* Neumorphic callouts */
+        .custom-md-callout-title { font-weight: 600; margin-bottom: 5px; display:block; }
+        .custom-md-callout.tip { border-left-color: var(--callout-tip-border); } /* Background is already neumorphic base */
+        .custom-md-callout.note { border-left-color: var(--callout-note-border); }
+        .custom-md-callout.info { border-left-color: var(--callout-info-border); }
+        
+        /* Animation Styles */
+        .animated-typing { display: inline-block; overflow: hidden; border-right: .15em solid var(--primary-accent); white-space: nowrap; letter-spacing: .05em; animation: typing-effect 3.5s steps(40, end) forwards, blink-caret .75s step-end infinite; max-width: 0; }
+        @keyframes typing-effect { from { max-width: 0; } to { max-width: 100%; } }
+        @keyframes blink-caret { from, to { border-color: transparent; } 50% { border-color: var(--primary-accent); } }
+        .animated-fade-in { opacity: 0; animation: fade-in-effect forwards; }
+        @keyframes fade-in-effect { to { opacity: 1; } }
+        .animated-bounce-in { opacity: 0; transform: scale(0.3) translateY(50px); animation: bounce-in-effect 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes bounce-in-effect { to { opacity: 1; transform: scale(1) translateY(0); } }
+        .animated-shimmer { background: linear-gradient(to right, var(--primary-accent) 20%, var(--secondary-accent) 40%, var(--primary-accent) 60%, var(--secondary-accent) 80%); background-size: 200% auto; color: transparent; background-clip: text; -webkit-background-clip: text; animation: shimmer-effect 3s linear infinite; display: inline-block; }
+        @keyframes shimmer-effect { to { background-position: -200% center; } }
+
+        .message.loading .message-bubble { 
+            display: flex; align-items: center; color: var(--text-secondary); 
+            background-color: var(--bg-color) !important; /* Neumorphic loading */
+            box-shadow: var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light);
+        }
+        .dot-flashing { position: relative; width: 8px; height: 8px; border-radius: 5px; background-color: var(--primary-accent); animation: dotFlashing 1s infinite linear alternate; animation-delay: .5s; margin-right: 10px; }
+        .dot-flashing::before, .dot-flashing::after { content: ''; display: inline-block; position: absolute; top: 0; width: 8px; height: 8px; border-radius: 5px; background-color: var(--primary-accent); }
+        .dot-flashing::before { left: -12px; animation: dotFlashing 1s infinite alternate; animation-delay: 0s; }
+        .dot-flashing::after { left: 12px; animation: dotFlashing 1s infinite alternate; animation-delay: 1s; }
+        @keyframes dotFlashing { 0% { background-color: var(--primary-accent); } 50%, 100% { background-color: color-mix(in srgb, var(--primary-accent) 30%, transparent); } }
+
+        .input-area { 
+            display: flex; padding: clamp(10px, 1.5vw, 15px); 
+            border-top: 1px solid var(--border-color); 
+            background-color: var(--bg-color); /* Match chat window for consistency */
+            align-items: flex-end; gap: clamp(8px, 1vw, 10px); 
+            flex-shrink: 0; position: relative; z-index: 2;
+            border-bottom-left-radius: 20px; /* Match container */
+            border-bottom-right-radius: 20px; /* Match container */
+        }
+        .input-wrapper { 
+            flex-grow: 1; display: flex; flex-direction: column; 
+            background-color: var(--bg-color); /* Neumorphic base */
+            border-radius: 22px; 
+            padding: 8px clamp(12px, 1.8vw, 18px); /* Adjusted padding */
+            min-width: 0;
+            box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light); /* Neumorphic inset */
+            border: none; /* Remove border */
+            transition: box-shadow 0.2s;
+        }
+        .input-wrapper:focus-within { 
+             /* Subtle change for focus, main style is inset */
+            box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light), 0 0 0 2px color-mix(in srgb, var(--primary-accent) 30%, transparent);
+        }
+        #userInput { 
+            width: 100%; padding: 10px 0; border: none; 
+            font-size: clamp(0.9em, 1.8vw, 1em); background-color: transparent; 
+            outline: none; color: var(--text-primary); resize: none; 
+            min-height: 24px; max-height: 120px; overflow-y: hidden; 
+        }
+        .input-actions { display: flex; justify-content: space-between; align-items: center; padding-bottom: 5px;}
+        .file-input-label .icon-button { 
+            font-size: clamp(1.1em, 2vw, 1.3em); color: var(--icon-color);
+            background-color: transparent; /* Neumorphic buttons are often transparent or bg-colored */
+            border-radius: 50%; padding: 5px;
+            box-shadow: var(--neumorphic-shadow-icon-dark), var(--neumorphic-shadow-icon-light);
+            transition: color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .file-input-label .icon-button:hover { 
+            color: var(--icon-hover-color);
+            box-shadow: var(--neumorphic-shadow-icon-dark), var(--neumorphic-shadow-icon-light); /* Keep shadow on hover */
+            transform: translateY(-1px);
+        }
+        .file-input-label .icon-button:active {
+            box-shadow: var(--neumorphic-shadow-icon-inset-dark), var(--neumorphic-shadow-icon-inset-light);
+            transform: translateY(0px);
+        }
+        #imagePreviewContainer { margin-top: 5px; display:flex; align-items:center; gap:5px; flex-shrink:0; }
+        #imagePreview { max-width: clamp(60px, 10vw, 100px); max-height: clamp(30px, 5vh, 50px); border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; object-fit: cover; }
+        #imageFileName { font-size: clamp(0.7em, 1.2vw, 0.8em); color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;}
+        #removeImageBtn { font-size: clamp(0.7em, 1.2vw, 0.8em); color: var(--error-color); cursor: pointer; background: none; border: none; padding:2px; }
+        
+        .input-area .send-button { 
+            background-color: var(--primary-accent); color: var(--button-text); 
+            border: none; width: clamp(44px, 7vw, 52px); height: clamp(44px, 7vw, 52px); /* Slightly larger */
+            border-radius: 50%; cursor: pointer; 
+            transition: background-color 0.3s ease, transform 0.15s ease, opacity 0.3s ease, box-shadow 0.15s ease; 
+            display: flex; align-items: center; justify-content: center; 
+            align-self: flex-end; flex-shrink: 0;
+            /* Neumorphic shadow based on button's own color */
+            box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--primary-accent) 60%, black),
+                -3px -3px 7px color-mix(in srgb, var(--primary-accent) 40%, white);
+        }
+        html.dark-theme .input-area .send-button {
+             box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--primary-accent) 70%, #000000 50%), /* Darker shadow part */
+                -3px -3px 7px color-mix(in srgb, var(--primary-accent) 30%, #ffffff 30%); /* Lighter shadow part */
+        }
+
+        .input-area .send-button svg { width: clamp(18px, 3vw, 22px); height: clamp(18px, 3vw, 22px); fill: var(--button-text); }
+        .input-area .send-button:disabled { 
+            background-color: var(--text-secondary); opacity: var(--disabled-opacity); 
+            cursor: not-allowed; transform: none; 
+            box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light); /* Disabled looks pressed/flat */
+        }
+        .input-area .send-button:not(:disabled):hover { 
+            background-color: color-mix(in srgb, var(--primary-accent) 90%, black); 
+            transform: translateY(-2px); /* Lift effect */
+        }
+        .input-area .send-button:not(:disabled):active { 
+            transform: translateY(0px) scale(0.95); 
+            /* Inset shadow for pressed effect, relative to button color */
+            box-shadow: 
+                inset 2px 2px 5px color-mix(in srgb, var(--primary-accent) 60%, black),
+                inset -2px -2px 5px color-mix(in srgb, var(--primary-accent) 40%, white);
+        }
+         html.dark-theme .input-area .send-button:not(:disabled):active {
+            box-shadow: 
+                inset 2px 2px 5px color-mix(in srgb, var(--primary-accent) 70%, #000000 50%),
+                inset -2px -2px 5px color-mix(in srgb, var(--primary-accent) 30%, #ffffff 30%);
+        }
+
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); animation: fadeIn 0.3s ease-out; }
+        .modal-content { 
+            background-color: var(--surface-color); /* Modal distinct from bg */
+            max-width: clamp(300px, 90vw, 550px); 
+            margin: 5vh auto; padding: clamp(20px, 3vw, 30px); 
+            border-radius: 16px; /* Softer radius */
+            box-shadow: var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light); /* Main shadow for modal */
+            animation: slideIn 0.3s ease-out; 
+            border: 1px solid var(--border-color); /* Retain a subtle border for modals on surface color */
+        }
+        html.dark-theme .modal-content {
+             box-shadow: 0 8px 30px rgba(0,0,0,0.3), var(--neumorphic-shadow-dark), var(--neumorphic-shadow-light); /* Dark theme modal shadow */
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+        .modal-header h2 { color: var(--primary-accent); font-size: clamp(1.5em, 3vw, 1.8em); font-family: var(--font-secondary); }
+        .close-button { color: var(--text-secondary); font-size: clamp(1.8em, 3.5vw, 2.2em); font-weight: bold; cursor: pointer; transition: color 0.2s, transform 0.2s; }
+        .close-button:hover { color: var(--text-primary); transform: rotate(90deg); }
+        .settings-form label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); font-size: clamp(0.85em, 1.6vw, 0.95em); }
+        .settings-form input[type="text"], .settings-form input[type="password"] { 
+            width: 100%; padding: clamp(10px, 1.5vw, 12px) clamp(12px, 1.8vw, 15px); 
+            margin-bottom: 18px; 
+            border: none; /* Remove border for neumorphic input field */
+            border-radius: 10px; /* Softer radius */
+            font-size: clamp(0.9em, 1.8vw, 1em); 
+            background-color: var(--bg-color); /* Neumorphic input field */
+            color: var(--text-primary); 
+            transition: box-shadow 0.3s ease;
+            box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light);
+        }
+        .settings-form input:focus { 
+            outline: none; 
+            box-shadow: var(--neumorphic-shadow-inset-dark), var(--neumorphic-shadow-inset-light), 0 0 0 2px color-mix(in srgb, var(--primary-accent) 30%, transparent);
+        }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .form-actions button { 
+            padding: clamp(9px, 1.3vw, 11px) clamp(18px, 2.2vw, 22px); 
+            border: none; border-radius: 10px; /* Softer radius */
+            cursor: pointer; font-size: clamp(0.9em, 1.8vw, 1em); font-weight: 500; 
+            transition: background-color 0.2s, transform 0.15s, box-shadow 0.15s;
+            color: var(--button-text);
+        }
+        .form-actions button[type="submit"] { 
+            background-color: var(--secondary-accent);
+            box-shadow: 2px 2px 5px color-mix(in srgb, var(--secondary-accent) 60%, black), -2px -2px 5px color-mix(in srgb, var(--secondary-accent) 40%, white);
+        }
+         html.dark-theme .form-actions button[type="submit"] {
+            box-shadow: 2px 2px 5px color-mix(in srgb, var(--secondary-accent) 70%, #000000 50%), -2px -2px 5px color-mix(in srgb, var(--secondary-accent) 30%, #ffffff 30%);
+        }
+        .form-actions button[type="submit"]:hover { background-color: color-mix(in srgb, var(--secondary-accent) 85%, black); transform: translateY(-1px); }
+        
+        .hard-reset-button { 
+            background-color: var(--error-color);
+            box-shadow: 2px 2px 5px color-mix(in srgb, var(--error-color) 60%, black), -2px -2px 5px color-mix(in srgb, var(--error-color) 40%, white);
+        }
+        html.dark-theme .hard-reset-button {
+             box-shadow: 2px 2px 5px color-mix(in srgb, var(--error-color) 70%, #000000 50%), -2px -2px 5px color-mix(in srgb, var(--error-color) 30%, #ffffff 30%);
+        }
+        .hard-reset-button:hover { background-color: color-mix(in srgb, var(--error-color) 85%, black); transform: translateY(-1px); }
+        
+        .form-actions button:active { 
+            transform: translateY(0px) scale(0.97);
+            box-shadow: inset 1px 1px 3px color-mix(in srgb, currentColor 60%, black), inset -1px -1px 3px color-mix(in srgb, currentColor 40%, white);
+        }
+
+
+        #scrollToBottomBtn { 
+            position: absolute; bottom: clamp(10px, 2vh, 15px); right: clamp(10px, 2vw, 15px); 
+            background-color: var(--primary-accent); color: var(--button-text); 
+            border: none; border-radius: 50%; 
+            width: clamp(40px, 6vw, 48px); height: clamp(40px, 6vw, 48px); 
+            font-size: clamp(1em, 2vw, 1.2em); cursor: pointer; 
+            display: none; align-items: center; justify-content: center; z-index: 100; 
+            transition: opacity 0.3s, transform 0.3s, background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--primary-accent) 60%, black),
+                -3px -3px 7px color-mix(in srgb, var(--primary-accent) 40%, white);
+        }
+        html.dark-theme #scrollToBottomBtn {
+             box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--primary-accent) 70%, #000000 50%),
+                -3px -3px 7px color-mix(in srgb, var(--primary-accent) 30%, #ffffff 30%);
+        }
+        #scrollToBottomBtn:hover { 
+            background-color: color-mix(in srgb, var(--primary-accent) 85%, black); 
+            transform: translateY(-2px); 
+        }
+         #scrollToBottomBtn:active {
+            transform: translateY(0px) scale(0.95);
+             box-shadow: 
+                inset 2px 2px 5px color-mix(in srgb, var(--primary-accent) 60%, black),
+                inset -2px -2px 5px color-mix(in srgb, var(--primary-accent) 40%, white);
+        }
+         html.dark-theme #scrollToBottomBtn:active {
+             box-shadow: 
+                inset 2px 2px 5px color-mix(in srgb, var(--primary-accent) 70%, #000000 50%),
+                inset -2px -2px 5px color-mix(in srgb, var(--primary-accent) 30%, #ffffff 30%);
+        }
+
+
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { 
+            visibility: hidden; width: auto; min-width: 80px; 
+            background-color: var(--text-primary); 
+            color: var(--bg-color); 
+            text-align: center; border-radius: 6px; padding: 5px 8px; 
+            position: absolute; z-index: 1001; bottom: 130%; left: 50%; 
+            transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; 
+            font-size: 0.8em; white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+
+        #toastNotification { 
+            position: fixed; bottom: 20px; left: 50%; 
+            transform: translateX(-50%) translateY(100%); 
+            background-color: var(--secondary-accent); color: var(--button-text); 
+            padding: clamp(10px, 1.5vw, 12px) clamp(20px, 2.5vw, 25px); 
+            border-radius: 10px; /* Softer radius */
+            z-index: 2000; opacity: 0; visibility: hidden; 
+            transition: opacity 0.3s, visibility 0.3s, transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            font-size: clamp(0.85em, 1.5vw, 1em);
+            box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--secondary-accent) 60%, black),
+                -3px -3px 7px color-mix(in srgb, var(--secondary-accent) 40%, white);
+        }
+         html.dark-theme #toastNotification {
+             box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--secondary-accent) 70%, #000000 50%),
+                -3px -3px 7px color-mix(in srgb, var(--secondary-accent) 30%, #ffffff 30%);
+        }
+        #toastNotification.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        #toastNotification.error { 
+            background-color: var(--error-color); 
+            box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--error-color) 60%, black),
+                -3px -3px 7px color-mix(in srgb, var(--error-color) 40%, white);
+        }
+        html.dark-theme #toastNotification.error {
+             box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--error-color) 70%, #000000 50%),
+                -3px -3px 7px color-mix(in srgb, var(--error-color) 30%, #ffffff 30%);
+        }
+        #toastNotification.info { 
+            background-color: var(--icon-color); 
+            box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--icon-color) 60%, black),
+                -3px -3px 7px color-mix(in srgb, var(--icon-color) 40%, white);
+        }
+        html.dark-theme #toastNotification.info {
+             box-shadow: 
+                3px 3px 7px color-mix(in srgb, var(--icon-color) 70%, #000000 50%),
+                -3px -3px 7px color-mix(in srgb, var(--icon-color) 30%, #ffffff 30%);
+        }
+
+
+        @media (max-width: 768px) { .container { width: clamp(320px, 95vw, 700px); height: clamp(480px, 92vh, 750px); } .message-bubble { max-width: 90%; } }
+        @media (max-width: 600px) {
+            body { display: flex; }
+            .container { width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; margin: 0; }
+            .chat-window { padding: 10px; } .input-area { padding: 8px 10px; border-radius:0; }
+            header { border-radius:0; }
+            header h1 { font-size: clamp(1.3em, 5vw, 1.5em); } .message-bubble { max-width: 92%; }
+            #scrollToBottomBtn { bottom: clamp(15px, 3vh, 20px); }
+        }
+        @media (max-width: 400px) {
+            header h1 { font-size: 1.2em; } .header-actions .icon-button { font-size: 1.1em; width:38px; height:38px; }
+            .input-area { padding: 8px; } .input-wrapper { padding: 5px 10px; }
+            .input-area .send-button { width: 42px; height: 42px; } .input-area .send-button svg { width: 16px; height: 16px; }
+            #imagePreview { max-width: 45px; max-height: 22px; } #imageFileName { max-width: 70px; }
+            .message-bubble { font-size: clamp(0.8em, 2.5vw, 0.9em); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Recipe Chef</h1>
+            <div class="header-actions">
+                <button class="icon-button" id="clearChatBtn" aria-label="Clear Chat" data-tooltip="Clear Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                </button>
+                <button class="icon-button" id="themeToggleBtn" aria-label="Toggle Theme" data-tooltip="Toggle Theme">
+                    ☀️ <!-- JS will set correct icon -->
+                </button>
+                <button class="icon-button" id="settingsBtn" aria-label="Open Settings" data-tooltip="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.25C8.66,5.49,8.12,5.82,7.63,6.2L5.24,5.24C5.02,5.17,4.77,5.24,4.65,5.45L2.73,8.77 c-0.11,0.2-0.06,0.47,0.12,0.61l2.03,1.58C4.82,11.36,4.8,11.68,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.44 c0.04,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0-0.43-0.17,0.47-0.41l0.36-2.44c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.11-0.2,0.06-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="chat-window" id="chatWindow"></div>
+         <button id="scrollToBottomBtn" aria-label="Scroll to Bottom" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 15.586l-4.293-4.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0l5-5a1 1 0 00-1.414-1.414L12 15.586zM12 2a1 1 0 00-1 1v10.586l-4.293-4.293a1 1 0 10-1.414 1.414l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414L13 13.586V3a1 1 0 00-1-1z"></path></svg>
+        </button>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                 <div id="imagePreviewContainer" style="display: none; flex-shrink:0;">
+                    <img id="imagePreview" src="#" alt="Image preview"/>
+                    <span id="imageFileName"></span>
+                    <button id="removeImageBtn" aria-label="Remove image">&times;</button>
+                </div>
+                <textarea id="userInput" placeholder="Ask for a recipe, or describe an image..." aria-label="Recipe request input" rows="1"></textarea>
+                <div class="input-actions">
+                    <label for="imageUpload" class="file-input-label" data-tooltip="Attach Image"> <!-- Removed .icon-button to style uniquely -->
+                         <span class="icon-button" style="display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px;"> <!-- Wrapper span for icon-button style -->
+                            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><g><rect fill="none" height="24" width="24"/></g><g><g><path d="M20,4H4C2.89,4,2.01,4.89,2.01,6L2,18c0,1.11,0.89,2,2,2h16c1.11,0,2-0.89,2-2V6C22,4.89,21.11,4,20,4z M20,18H4V6h16 V18z"/><polygon points="6.5,12.25 9,15.5 11.5,12 13.25,14.25 17.5,8.5 15.5,8.5 13.25,11.75 11.5,9 9,12.5"/></g></g></svg>
+                         </span>
+                    </label>
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                </div>
+            </div>
+            <button id="sendBtn" class="send-button" aria-label="Send message">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal" role="dialog" aria-labelledby="settingsModalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="settingsModalTitle">Settings</h2>
+                <span class="close-button" id="closeModalBtn" role="button" tabindex="0" aria-label="Close settings">&times;</span>
+            </div>
+            <form id="settingsForm" class="settings-form">
+                <label for="shapesApiKey">Shapes API Key:</label>
+                <input type="password" id="shapesApiKey" name="shapesApiKey" placeholder="Enter your Shapes API Key" aria-required="true">
+                <label for="shapeName">Shape Username (e.g., tenshi):</label>
+                <input type="text" id="shapeName" name="shapeName" placeholder="e.g., tenshi or my-custom-chef" aria-required="true">
+                <p style="font-size: clamp(0.8em, 1.4vw, 0.85em); color: var(--text-secondary); margin-bottom: 15px; margin-top: 5px;">
+                    Google API Key and Search Engine ID are for the Shape's internal configuration on shapes.inc, if its tools require them. This app doesn't use them directly.
+                </p>
+                <label for="googleApiKey">Google API Key (for Shape's internal tool):</label>
+                <input type="password" id="googleApiKey" name="googleApiKey" placeholder="Optional: For Shape's tool config">
+                <label for="googleSearchEngineId">Google Search Engine ID (for Shape's internal tool):</label>
+                <input type="text" id="googleSearchEngineId" name="googleSearchEngineId" placeholder="Optional: For Shape's tool config">
+                <div class="form-actions">
+                    <button type="button" id="hardResetBtn" class="hard-reset-button">Hard Reset</button>
+                    <button type="submit">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="toastNotification"></div>
+    <script>
+        // DOM Elements
+        const chatWindow = document.getElementById('chatWindow');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsForm = document.getElementById('settingsForm');
+        const hardResetBtn = document.getElementById('hardResetBtn');
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageFileNameEl = document.getElementById('imageFileName');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+        const toastNotification = document.getElementById('toastNotification');
+
+        // --- Configuration & State ---
+        const SHAPES_API_BASE_URL = 'https://api.shapes.inc/v1';
+        let settings = { shapesApiKey: '', shapeName: 'default-recipe-chef', googleApiKey: '', googleSearchEngineId: '', theme: 'light' };
+        const CHAT_HISTORY_KEY = 'aiRecipeChefChatHistory_v5';
+        const SETTINGS_KEY = 'aiRecipeChefSettings_v4';
+        let currentImageBase64 = null;
+        let isLoadingResponse = false;
+
+        // --- Utility Functions ---
+        function getCurrentTimestamp() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+        function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str; return temp.innerHTML; }
+
+        // --- Markdown Parsing ---
+        function applyMarkdown(text) {
+            let html = text;
+
+            // --- Custom Markdown First (Order is important) ---
+            // Animations
+            html = html.replace(/\^\^\[(\w+)(?::([^\]]+))?\]([\s\S]*?)\^\^/g, (match, type, params, content) => {
+                let animationClass = ''; let style = ''; type = type.toLowerCase();
+                if (type === 'typing') animationClass = 'animated-typing';
+                else if (type === 'fade-in') animationClass = 'animated-fade-in';
+                else if (type === 'bounce-in') animationClass = 'animated-bounce-in';
+                else if (type === 'shimmer') animationClass = 'animated-shimmer';
+                if (params) { const durMatch = params.match(/duration=(\d+(\.\d+)?s)/); if (durMatch && animationClass === 'animated-fade-in') style = `animation-duration: ${durMatch[1]};`;}
+                return `<span class="${animationClass}" style="${style}">${applyMarkdownSimple(content.trim())}</span>`;
+            });
+            // Recipe Title
+            html = html.replace(/!!\[([^\]]+)\]/g, '<strong class="custom-md-recipe-title">$1</strong>');
+            // Section Header
+            html = html.replace(/##\[([^\]]+)\]/g, '<span class="custom-md-section-header">$1</span>');
+            // Callouts
+            html = html.replace(/@@\[(\w+)(?::([^\]]+))?\]([\s\S]*?)@@/g, (match, type, title, content) => {
+                const typeClass = type.toLowerCase(); const titleHtml = title ? `<strong class="custom-md-callout-title">${sanitizeHTML(title.trim())}</strong>` : '';
+                return `<div class="custom-md-callout ${typeClass}">${titleHtml}${applyMarkdownSimple(content.trim())}</div>`;
+            });
+
+            // --- Common Markdown: Block Elements (After Custom) ---
+            html = html.replace(/```(\w*)\n([\s\S]+?)\n```\s*/g, (match, lang, code) => `<pre><code class="language-${lang || 'plaintext'}">${sanitizeHTML(code.trim())}</code></pre>`);
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>'); 
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>'); 
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            
+            html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>'); 
+            html = html.replace(/^(?:---|\*\*\*|___)\s*$/gm, '<hr>');
+
+            html = html.replace(/^\s*[\*\-\+] +(.*)/gm, '<li>$1</li>');
+            html = html.replace(/^\s*\d+\. +(.*)/gm, '<li>$1</li>');
+            html = html.replace(/^(<li>.*<\/li>\s*)+/gm, (match) => {
+                if (text.substring(text.indexOf(match.replace(/<\/?li>/g, '').trim().split('\n')[0].trim()) - 3, text.indexOf(match.replace(/<\/?li>/g, '').trim().split('\n')[0].trim())).match(/^\d+\.\s/)) {
+                    return `<ol>${match}</ol>`;
+                }
+                return `<ul>${match}</ul>`;
+            });
+            html = html.replace(/<\/ul>\s*<ul>/gm, ''); html = html.replace(/<\/ol>\s*<ol>/gm, '');
+
+            // --- Common Markdown: Inline Elements ---
+            html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/__(.*?)__/g, '<strong>$1</strong>');
+            html = html.replace(/(?<![a-zA-Z0-9*])\*(?![*\s])(.*?)(?<![\s*])\*(?![a-zA-Z0-9*])/g, '<em>$1</em>'); 
+            html = html.replace(/(?<![a-zA-Z0-9_])_(?![\s_])(.*?)(?<![\s_])_(?![a-zA-Z0-9_])/g, '<em>$1</em>');     
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>'); 
+            html = html.replace(/`([^`]+?)`/g, '<code>$1</code>');
+
+            html = html.replace(/(?:^|\n\s*)(https?:\/\/[^\s]+?\.(?:jpg|jpeg|png|gif|webp)(\?[^\s]*)?)(?:\s*\n|$)/gi, '\n<img src="$1" alt="Image content" style="display:block; margin:10px auto; max-width:90%; border-radius:10px; border:1px solid var(--border-color);">\n');
+            html = html.replace(/(?:^|\n\s*)(https?:\/\/[^\s]+?\.(?:mp3))(\?[^\s]*)?(?:\s*\n|$)/gi, '\n<audio controls src="$1" style="width:100%; margin-top:10px; border-radius:5px;"></audio>\n');
+
+            html = html.split('\n').join('<br>'); 
+            html = html.replace(/<br>\s*<br>/g, '<br>'); 
+            html = html.replace(/<\/(?:ul|ol|li|p|h[1-6]|pre|blockquote|div|hr)>\s*<br>/gi, '</$1>'); 
+            html = html.replace(/<br>\s*<(?:ul|ol|li|p|h[1-6]|pre|blockquote|div|hr)/gi, '<$1>'); 
+            return html;
+        }
+
+        function applyMarkdownSimple(text) { 
+            let html = sanitizeHTML(text); 
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/__(.*?)__/g, '<strong>$1</strong>'); 
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/_(.*?)_/g, '<em>$1</em>'); 
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>'); 
+            html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); 
+            return html.split('\n').join('<br>'); 
+        }
+        function parseMessageContent(text) { return applyMarkdown(text); }
+
+        function showToast(message, type = 'success', duration = 3000) { toastNotification.textContent = message; toastNotification.className = type === 'error' ? 'error' : (type === 'info' ? 'info' : ''); toastNotification.classList.add('show'); setTimeout(() => { toastNotification.classList.remove('show'); }, duration); }
+        function addMessageToChat(text, sender, isSystemMessage = false, isLoading = false, imageBase64ForDisplay = null) {
+            const messageWrapper = document.createElement('div'); messageWrapper.classList.add('message', sender); if (isSystemMessage) messageWrapper.classList.add('system-message');
+            const messageBubble = document.createElement('div'); messageBubble.classList.add('message-bubble');
+            const messageContentDiv = document.createElement('div'); messageContentDiv.classList.add('message-content');
+            if (isLoading) { messageBubble.classList.add('loading'); messageContentDiv.innerHTML = `<div class="dot-flashing"></div> ${sanitizeHTML(text.replace('loading...', ''))}`; }
+            else if (sender === 'user') { messageContentDiv.innerHTML = sanitizeHTML(text); if (imageBase64ForDisplay) { const img = document.createElement('img'); img.src = imageBase64ForDisplay; img.style.cssText = 'max-width:clamp(150px,30vw,200px);margin-top:10px;border-radius:8px;'; messageContentDiv.appendChild(img);}}
+            else { messageContentDiv.innerHTML = parseMessageContent(text); }
+            messageBubble.appendChild(messageContentDiv); messageWrapper.appendChild(messageBubble);
+            if (!isSystemMessage && !isLoading) {
+                const ts = document.createElement('span'); ts.className='timestamp'; ts.textContent=getCurrentTimestamp(); messageWrapper.appendChild(ts);
+                const act = document.createElement('div'); act.className='message-actions';
+                if(sender==='ai'){ const cb=document.createElement('button');cb.className='icon-button';cb.ariaLabel='Copy';cb.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>`; cb.onclick=()=>{navigator.clipboard.writeText(text).then(()=>showToast('Copied!')).catch(()=>showToast('Failed!','error'))}; act.appendChild(cb);}
+                messageWrapper.appendChild(act);
+            }
+            if(chatWindow) chatWindow.appendChild(messageWrapper); if (sender==='user'||(chatWindow && chatWindow.scrollHeight-chatWindow.scrollTop-chatWindow.clientHeight<150)) if(chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
+            return messageWrapper;
+        }
+        function updateMessageContent(messageWrapper, newText, isLoadingFlag = false) {
+            if (!messageWrapper) return; const bubble = messageWrapper.querySelector('.message-bubble'); const content = bubble.querySelector('.message-content'); let ts = messageWrapper.querySelector('.timestamp');
+            if (isLoadingFlag) { bubble.classList.add('loading'); content.innerHTML = `<div class="dot-flashing"></div> ${sanitizeHTML(newText.replace('loading...', ''))}`; if (ts) ts.remove(); }
+            else { bubble.classList.remove('loading'); content.innerHTML = parseMessageContent(newText); if (!ts && !messageWrapper.classList.contains('system-message') && !messageWrapper.classList.contains('loading')) { ts = document.createElement('span'); ts.className = 'timestamp'; messageWrapper.appendChild(ts); } if (ts) ts.textContent = getCurrentTimestamp(); if (messageWrapper.classList.contains('ai') && !messageWrapper.querySelector('.message-actions')) { const act = document.createElement('div'); act.className='message-actions'; const cb = document.createElement('button'); cb.className='icon-button'; cb.ariaLabel='Copy'; cb.innerHTML=`<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path></svg>`; cb.onclick=()=>{navigator.clipboard.writeText(newText).then(()=>showToast('Copied!')).catch(()=>showToast('Failed!','error'))}; act.appendChild(cb); messageWrapper.appendChild(act);}}
+            if (chatWindow && chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 150) chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function loadSettings() { try { const S = localStorage.getItem(SETTINGS_KEY); if (S) settings = { ...settings, ...JSON.parse(S) }; } catch (e){ console.error("Error loading settings:", e); localStorage.removeItem(SETTINGS_KEY); } applyTheme(settings.theme); }
+        function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e){ console.error("Error saving settings:", e); showToast("Could not save settings.", "error"); } }
+        function loadSettingsToForm() { if(settingsModal){document.getElementById('shapesApiKey').value = settings.shapesApiKey; document.getElementById('shapeName').value = settings.shapeName; document.getElementById('googleApiKey').value = settings.googleApiKey; document.getElementById('googleSearchEngineId').value = settings.googleSearchEngineId;} }
+        function saveSettingsFromForm() { settings.shapesApiKey = document.getElementById('shapesApiKey').value.trim(); settings.shapeName = document.getElementById('shapeName').value.trim(); settings.googleApiKey = document.getElementById('googleApiKey').value.trim(); settings.googleSearchEngineId = document.getElementById('googleSearchEngineId').value.trim(); saveSettings(); }
+        function applyTheme(theme) { document.documentElement.className = theme === 'dark' ? 'dark-theme' : ''; if(themeToggleBtn) {themeToggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙'; const t = themeToggleBtn.parentElement.getAttribute('data-tooltip'); if(t) { const tooltipElem = themeToggleBtn.closest('.tooltip'); if(tooltipElem) { const ttText = tooltipElem.querySelector('.tooltiptext'); if(ttText) ttText.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode'; } } } settings.theme = theme; }
+        function toggleTheme() { const nT = document.documentElement.classList.contains('dark-theme') ? 'light' : 'dark'; applyTheme(nT); saveSettings(); }
+        function loadChatHistory() { try { const H=localStorage.getItem(CHAT_HISTORY_KEY); if(H){ const M=JSON.parse(H); if(M.length===0)addWelcomeMessage(); else M.forEach(m=>addMessageToChat(m.text,m.sender,m.isSystemMessage||!1,!1,m.imageBase64||null));} else addWelcomeMessage();}catch(e){console.error(e);localStorage.removeItem(CHAT_HISTORY_KEY);addWelcomeMessage();} if(chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight; }
+        function addWelcomeMessage() { addMessageToChat("Hello there! 🍜 I'm your AI Recipe Chef. Ask me for a recipe, or show me an image of ingredients!", 'ai', true); }
+        function saveMessageToHistory(text, sender, imageBase64ForStorage = null, isSystemMessage = false) { try { const H=JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY)||'[]'); H.push({text,sender,imageBase64:imageBase64ForStorage,isSystemMessage,timestamp:getCurrentTimestamp()}); localStorage.setItem(CHAT_HISTORY_KEY,JSON.stringify(H));}catch(e){console.error(e);}}
+        function toggleSendButton(enable) { if(sendBtn){sendBtn.disabled = !enable;} isLoadingResponse = !enable; }
+
+        if(imageUpload) imageUpload.addEventListener('change', (event) => { const f=event.target.files[0];if(f){if(f.size>4*1024*1024){showToast('Image size limit 4MB.','error');imageUpload.value='';return}const r=new FileReader();r.onload=e=>{currentImageBase64=e.target.result;if(imagePreview)imagePreview.src=currentImageBase64;if(imageFileNameEl)imageFileNameEl.textContent=f.name.length>15?f.name.substring(0,12)+'...':f.name;if(imagePreviewContainer)imagePreviewContainer.style.display='flex';if(userInput)userInput.focus()};r.onerror=()=>{showToast('Error reading image.','error');if(removeImageBtn)removeImageBtn.click()};r.readAsDataURL(f)}});
+        if(removeImageBtn) removeImageBtn.addEventListener('click', () => { currentImageBase64 = null; if(imageUpload)imageUpload.value = ''; if(imagePreviewContainer)imagePreviewContainer.style.display = 'none'; if(imagePreview)imagePreview.src = "#"; if(imageFileNameEl)imageFileNameEl.textContent = ""; });
+
+        async function sendMessage() {
+            if (isLoadingResponse) return;
+            const messageText = userInput ? userInput.value.trim() : "";
+            const imageToSendForThisMessage = currentImageBase64;
+            if (!messageText && !imageToSendForThisMessage) return;
+            toggleSendButton(false);
+
+            addMessageToChat(messageText || (imageToSendForThisMessage ? "Image attached" : ""), 'user', false, false, imageToSendForThisMessage);
+            saveMessageToHistory(messageText, 'user', imageToSendForThisMessage);
+
+            if(userInput){userInput.value = ''; userInput.style.height = 'auto'; userInput.dispatchEvent(new Event('input'));}
+            if (imageToSendForThisMessage && removeImageBtn) { removeImageBtn.click(); }
+
+            const loadingMessageWrapper = addMessageToChat('Chef is concocting...', 'ai', false, true);
+            if (!settings.shapesApiKey) { updateMessageContent(loadingMessageWrapper,'API Key missing.'); saveMessageToHistory('API Key missing.','ai',null,true); toggleSendButton(true); return; }
+            if (!settings.shapeName) { updateMessageContent(loadingMessageWrapper,'Shape Username missing.'); saveMessageToHistory('Shape Username missing.','ai',null,true); toggleSendButton(true); return; }
+
+            const fullModelName = settings.shapeName.startsWith('shapesinc/') ? settings.shapeName : `shapesinc/${settings.shapeName}`;
+            
+            // --- REFINED PROMPT ---
+            const instructionsToShape = `You are a specialized culinary assistant. Your primary goal is to provide excellent recipes and cooking advice.
+
+**Response Formatting:**
+-   **For General Conversation:** Use standard Markdown for clarity (bold, italics, lists, links). Keep it natural and conversational.
+-   **For Recipes (MANDATORY):** You MUST use the following custom markdown tags to structure the recipe. This is critical for the application to display it correctly. Be creative with how you apply these within the recipe structure!
+    *   **Recipe Title:** Use \`!![Actual Recipe Title Here]\`. Example: \`!![Amazing Lasagna]\`
+    *   **Section Headers:** Use \`##[Actual Section Name Here]\`. Examples: \`##[Ingredients]\`, \`##[Instructions]\`, \`##[Chef's Notes]\`
+    *   **Callouts (Tips, Notes, Info):** Use \`@@[Type:Optional Title]Content Here@@\`.
+        *   \`Type\` must be one of: \`Tip\`, \`Note\`, \`Info\` (case-sensitive).
+        *   Example (Tip): \`@@[Tip]Ensure your oven is preheated for best results.@@\`
+        *   Example (Note with title): \`@@[Note:Allergens]This recipe contains nuts.@@\`
+    *   **Animated Text (Use SPARINGLY for emphasis *within recipes*):** Use \`^^[animation_type]Text Here^^\`.
+        *   \`animation_type\` can be: \`typing\`, \`fade-in\`, \`bounce-in\`, \`shimmer\` (case-sensitive).
+        *   Example: \`A pinch of saffron adds a ^^[shimmer]magical flavor^^.\`
+
+**Key Guidelines:**
+-   When providing recipes, *always* use the custom markdown tags above for titles, sections, and callouts.
+-   For non-recipe conversation or general advice that isn't a full recipe structure, use standard Markdown. *Do not use the custom recipe tags (!![], ##[], @@[]) in general chat unless it's part of a full recipe response.*
+-   Use your search tool (e.g., by outputting \`!web <search_query>\`) for recipes, food facts, or any culinary information you don't inherently know. This is crucial for providing up-to-date and comprehensive answers.
+-   You CANNOT generate images. Do not offer to generate images or use any image generation tool syntax.
+-   Be friendly, enthusiastic, and helpful! If a user's request is ambiguous, ask for clarification.
+- [very important] never include "<$1>>" in your responses and you must always follow these instructions correctly without any mistakes.
+
+---
+User's request (text part): "${messageText || (imageToSendForThisMessage ? "(User sent an image, see below for analysis)" : "Hello!")}"
+${imageToSendForThisMessage ? "An image has also been provided by the user. Please analyze it (e.g., identify ingredients, suggest recipes) and respond to their query. Remember to use custom recipe markdown if you provide a structured recipe, and standard markdown otherwise." : ""}`;
+            // --- END OF REFINED PROMPT ---
+
+            let userContentForAPI;
+            const contentParts = [{ type: "text", text: instructionsToShape }];
+            if (imageToSendForThisMessage) { contentParts.push({ type: "image_url", image_url: { url: imageToSendForThisMessage } }); }
+            userContentForAPI = contentParts.length === 1 && contentParts[0].type === "text" ? contentParts[0].text : contentParts;
+
+
+            try {
+                const requestBody = { model: fullModelName, messages: [{ role: "user", content: userContentForAPI }] };
+                const response = await fetch(`${SHAPES_API_BASE_URL}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.shapesApiKey}` }, body: JSON.stringify(requestBody) });
+                if (!response.ok) { const errorData = await response.json().catch(() => ({ error: { message: response.statusText } })); throw new Error(`API Error (${response.status}): ${errorData.error?.message || 'Unknown'}`); }
+                const data = await response.json();
+                let aiResponseText = data.choices?.[0]?.message?.content?.trim() || "Sorry, empty response.";
+                updateMessageContent(loadingMessageWrapper, aiResponseText, false);
+                saveMessageToHistory(aiResponseText, 'ai');
+            } catch (error) {
+                console.error('API Error:', error);
+                const errMsg = `Chef's error: ${error.message}. Check settings or try again.`;
+                updateMessageContent(loadingMessageWrapper, errMsg, false);
+                saveMessageToHistory(errMsg, 'ai', null, true);
+            } finally { toggleSendButton(true); }
+        }
+
+        if(userInput) userInput.addEventListener('input', () => { userInput.style.height='auto';let sH=userInput.scrollHeight;const mH=parseInt(window.getComputedStyle(userInput).maxHeight);if(mH&&sH>mH){userInput.style.height=mH+'px';userInput.style.overflowY='auto'}else{userInput.style.height=sH+'px';userInput.style.overflowY='hidden'} });
+        if(chatWindow) chatWindow.addEventListener('scroll', () => { if(scrollToBottomBtn) scrollToBottomBtn.style.display = (chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight > 150) ? 'flex' : 'none'; });
+        if (scrollToBottomBtn) scrollToBottomBtn.addEventListener('click', () => { if(chatWindow) chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }); });
+
+        if(sendBtn) sendBtn.addEventListener('click', sendMessage);
+        if(userInput) userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+        if(clearChatBtn) clearChatBtn.addEventListener('click', () => { if (confirm('Clear chat history?')) { if(chatWindow)chatWindow.innerHTML = ''; try { localStorage.removeItem(CHAT_HISTORY_KEY); } catch (e) {} addWelcomeMessage(); showToast('Chat cleared!'); } });
+        if(settingsBtn) settingsBtn.addEventListener('click', () => { if (settingsModal) { settingsModal.style.display = 'block'; loadSettingsToForm(); const fI=settingsModal.querySelector('input,button'); if(fI)fI.focus(); }});
+        if(closeModalBtn) closeModalBtn.addEventListener('click', () => { if (settingsModal) settingsModal.style.display = 'none'; });
+        window.addEventListener('click', (event) => { if (event.target === settingsModal) settingsModal.style.display = 'none'; });
+        window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && settingsModal && settingsModal.style.display === 'block') settingsModal.style.display = 'none'; });
+        if(settingsForm) settingsForm.addEventListener('submit', (e) => { e.preventDefault(); saveSettingsFromForm(); if (settingsModal) settingsModal.style.display = 'none'; showToast('Settings saved!'); });
+        if(hardResetBtn) hardResetBtn.addEventListener('click', () => {
+             if (confirm('PERMANENTLY RESET all settings and chat history?')) {
+                try{localStorage.removeItem(SETTINGS_KEY);localStorage.removeItem(CHAT_HISTORY_KEY);}catch(e){} settings={shapesApiKey:'',shapeName:'default-recipe-chef',googleApiKey:'',googleSearchEngineId:'',theme:'light'};
+                loadSettingsToForm();applyTheme(settings.theme);if(chatWindow)chatWindow.innerHTML='';addWelcomeMessage(); if(settingsModal)settingsModal.style.display='none';showToast('System reset!','success');
+            }
+        });
+        document.querySelectorAll('[data-tooltip]').forEach(elem => { 
+            const tT=elem.getAttribute('data-tooltip'); 
+            let tS=elem.querySelector('.tooltiptext'); 
+            if(!tS){
+                tS=document.createElement('span');
+                tS.className='tooltiptext';
+                // Ensure the element itself has .tooltip class if it's not already there or on a parent
+                if (!elem.classList.contains('tooltip') && (!elem.parentElement || !elem.parentElement.classList.contains('tooltip'))) {
+                    elem.classList.add('tooltip');
+                }
+                elem.appendChild(tS);
+            } 
+            tS.textContent=tT; 
+        });
+
+
+        function initializeApp() {
+            loadSettings(); loadChatHistory();
+            const fM=chatWindow?chatWindow.querySelector('.message'):null; if(fM){fM.style.opacity='1';fM.style.transform='translateY(0)';}
+            if (userInput) { userInput.style.height = 'auto'; userInput.dispatchEvent(new Event('input')); }
+            toggleSendButton(true);
+            let vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${vh}px`);
+            window.addEventListener('resize', () => { let nVh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${nVh}px`); });
+        }
+        initializeApp();
+    </script>
+</body>
+</html>
