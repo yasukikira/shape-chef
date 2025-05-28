@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shapes & Sorcery: A D&D Adventure Engine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel+Decorative:wght@400;700&family=Open+Sans&display=swap');
+        :root {
+            --parchment-bg: #f0e6d2;
+            --dark-brown: #3a2b1b;
+            --wood-leather-dark: #5a3d2b;
+            --parchment-light-bg: #fff9f0;
+            --stone-wood-medium: #e0d8c8;
+            --border-color: #c8b898;
+            --button-bg: #7a5c4b;
+            --button-hover-bg: #5a3d2b;
+            --danger-bg: #a04040;
+            --danger-hover-bg: #803030;
+            --text-font: 'Open Sans', sans-serif;
+            --heading-font: 'MedievalSharp', cursive;
+            --title-font: 'Cinzel Decorative', cursive;
+        }
+        body {
+            font-family: var(--text-font); margin: 0; padding: 0; background-color: var(--parchment-bg); color: var(--dark-brown);
+            display: flex; flex-direction: column; min-height: 100vh; font-size: 16px; position: relative;
+        }
+        header {
+            background-color: var(--wood-leather-dark); color: var(--parchment-bg); padding: 10px 20px; text-align: center;
+            font-family: var(--title-font); font-size: 1.6em; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10;
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
+        header .title-text { flex-grow: 1; } /* Allow title to take space */
+
+        #helpButton {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--parchment-light-bg);
+            color: var(--wood-leather-dark);
+            border: 1px solid var(--wood-leather-dark);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        #helpButton:hover {
+            background-color: var(--wood-leather-dark);
+            color: var(--parchment-light-bg);
+        }
+
+        .container { display: flex; flex: 1; padding: 10px; gap: 15px; }
+        .main-game-area {
+            flex: 3; display: flex; flex-direction: column; background-color: var(--parchment-light-bg);
+            padding: 15px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); min-width: 0;
+        }
+        .sidebar {
+            flex: 1; background-color: var(--stone-wood-medium); padding: 15px; border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 15px; min-width: 0;
+        }
+        h2, h3 {
+            font-family: var(--heading-font); color: var(--wood-leather-dark); border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px; margin-top: 0.5em; margin-bottom: 0.8em;
+        }
+        h2 { font-size: 1.4em; } h3 { font-size: 1.2em; }
+        .tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid var(--wood-leather-dark); flex-wrap: wrap; }
+        .tab-button {
+            padding: 8px 12px; cursor: pointer; border: none; background-color: transparent; font-family: var(--heading-font);
+            font-size: 1em; color: var(--wood-leather-dark); margin-bottom: -2px; flex-grow: 1; text-align: center;
+        }
+        .tab-button.active {
+            background-color: var(--parchment-light-bg); border: 2px solid var(--wood-leather-dark);
+            border-bottom: 2px solid var(--parchment-light-bg); border-radius: 6px 6px 0 0;
+        }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        input[type="text"], input[type="password"], textarea {
+            width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid var(--border-color);
+            border-radius: 4px; background-color: #fdfbf5; font-size: 0.95em;
+        }
+        textarea { resize: vertical; min-height: 60px; }
+        button {
+            background-color: var(--button-bg); color: var(--parchment-bg); padding: 10px 15px; border: none;
+            border-radius: 4px; cursor: pointer; font-family: var(--text-font);
+            transition: background-color 0.3s ease; font-size: 0.95em; width: auto;
+        }
+        button:hover { background-color: var(--button-hover-bg); }
+        button.danger { background-color: var(--danger-bg); }
+        button.danger:hover { background-color: var(--danger-hover-bg); }
+        button:disabled { background-color: #b0a090; cursor: not-allowed; }
+        #scenarioDisplay {
+            flex-grow: 1; overflow-y: auto; padding: 10px; border: 1px solid #d8c8a8; border-radius: 4px;
+            margin-bottom: 15px; background-color: #fdfbf5; white-space: pre-wrap; min-height: 100px; font-size: 0.95em;
+        }
+        #scenarioDisplay img, #scenarioDisplay audio {
+            max-width: 100%; display: block; margin: 10px auto; border-radius: 4px;
+        }
+        #diceDisplayContainer { text-align: center; margin-bottom: 15px; }
+        #diceDisplay {
+            display: inline-block; width: 50px; height: 50px; line-height: 50px; border: 2px solid var(--wood-leather-dark);
+            border-radius: 8px; font-size: 1.5em; font-weight: bold; font-family: var(--heading-font);
+            background-color: #fff; color: var(--dark-brown);
+        }
+        #chatLog {
+            height: 150px; overflow-y: auto; border: 1px solid #d8c8a8; padding: 10px; margin-bottom: 15px;
+            background-color: #fdfbf5; border-radius: 4px; font-size: 0.9em;
+        }
+        .chat-message {
+            padding: 6px; margin-bottom: 6px; border-radius: 4px; position: relative; word-wrap: break-word;
+        }
+        .chat-message img, .chat-message audio {
+            max-width: 80%; display: block; margin: 5px 0; border-radius: 3px;
+        }
+         .chat-message audio { width: 100%; } 
+
+        .chat-message .actions { position: absolute; top: 2px; right: 5px; display: none; }
+        .chat-message:hover .actions { display: block; }
+        .chat-message .actions button { font-size: 0.65em; padding: 2px 3px; margin-left: 2px; }
+        .user-message { background-color: #e8f0f4; text-align: right; }
+        .shape-message { background-color: #fdecd0; }
+        .message-role { font-weight: bold; font-size: 0.9em; color: var(--wood-leather-dark); }
+        #userInputArea { display: flex; gap: 10px; align-items: stretch; }
+        #userInputArea textarea { flex-grow: 1; min-height: 40px; height: auto; max-height: 100px; margin-bottom: 0; }
+        #userInputArea button { flex-shrink: 0; }
+        .shape-card {
+            background-color: #fdfbf5; padding: 10px; border: 1px solid var(--border-color);
+            border-radius: 6px; margin-bottom: 10px;
+        }
+        .shape-card h4 { margin-top: 0; margin-bottom: 8px; font-family: var(--heading-font); font-size: 1.1em; }
+        .shape-card.active-shape { border-left: 5px solid var(--button-bg); background-color: #fff5e8; }
+        .shape-card-actions button { margin-right: 5px; margin-top: 5px; font-size: 0.85em; padding: 6px 10px; }
+        .shape-card-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+        .api-status { text-align: center; margin-top: 10px; font-style: italic; color: #777; font-size: 0.85em; }
+        
+        /* Help Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); 
+        }
+        .modal-content {
+            background-color: var(--parchment-light-bg);
+            margin: 10% auto; 
+            padding: 25px;
+            border: 3px solid var(--wood-leather-dark);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 700px;
+            color: var(--dark-brown);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-size: 0.95em;
+            max-height: 80vh; /* Limit height and make content scrollable */
+            overflow-y: auto;
+        }
+        .modal-content h4 {
+            font-family: var(--title-font);
+            color: var(--wood-leather-dark);
+            margin-top: 0;
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .modal-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        .modal-content li { margin-bottom: 8px; }
+        .modal-content code {
+            background-color: var(--stone-wood-medium);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .close-button {
+            color: var(--danger-bg);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .close-button:hover, .close-button:focus {
+            color: var(--danger-hover-bg);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @media (min-width: 769px) {
+            .container { padding: 20px; gap: 20px; }
+            .main-game-area, .sidebar { padding: 20px; }
+            #chatLog { height: 200px; }
+            #userInputArea textarea { max-height: 120px; }
+            header { font-size: 1.8em; }
+            .tab-button { padding: 10px 15px; font-size: 1.1em; }
+        }
+        @media (max-width: 768px) {
+            body { font-size: 15px; }
+            .container { flex-direction: column; }
+            .main-game-area, .sidebar { flex: none; width: 100%; box-sizing: border-box; }
+            header { font-size: 1.4em; padding: 10px 15px; }
+            h2 { font-size: 1.3em; } h3 { font-size: 1.1em; }
+            #userInputArea { flex-direction: column; }
+            #userInputArea textarea { width: calc(100% - 22px); margin-bottom: 10px; }
+            #userInputArea button { width: 100%; }
+            .tabs { justify-content: space-around; }
+            .tab-button { flex-basis: 45%; margin-bottom: 5px; }
+            .modal-content { margin: 15% auto; width: 90%; padding: 20px;}
+            #helpButton { width: 30px; height: 30px; font-size: 1em; right: 10px;}
+
+        }
+        @media (max-width: 480px) {
+            body { font-size: 14px; }
+            header { font-size: 1.2em; }
+            .tab-button { font-size: 0.9em; padding: 6px 8px; }
+            #diceDisplay { width: 45px; height: 45px; line-height: 45px; font-size: 1.3em; }
+            .shape-card-actions button { width: 100%; margin-right: 0; }
+            .shape-card-actions { flex-direction: column; }
+            .modal-content { margin: 5% auto; width: 90%; padding: 15px; font-size: 0.9em; }
+            .modal-content h4 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span class="title-text">Shapes & Sorcery</span>
+        <button id="helpButton" title="Open Game Guide">?</button>
+    </header>
+
+    <div id="guideModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeGuideModal">&times;</span>
+            <h4>Shapes & Sorcery - Player's Guide</h4>
+            <p>Welcome, adventurer! Here's how to interact with your Dungeon Master (DM) and the game world:</p>
+            
+            <h5>Interacting with the World:</h5>
+            <ul>
+                <li><strong>Describing Actions:</strong> When you want your character to do something, type it naturally. For actions where success isn't guaranteed (e.g., attacking, picking a lock, persuading someone), try to be clear. A D20 dice will roll automatically for such actions.</li>
+                <li><strong>Examples of Action Phrases that might trigger a dice roll:</strong>
+                    <ul>
+                        <li><code>I try to open the chest</code></li>
+                        <li><code>I attack the goblin with my sword</code></li>
+                        <li><code>I attempt to persuade the guard</code></li>
+                        <li><code>I search the room for traps</code></li>
+                        <li><code>I cast a spell</code></li>
+                    </ul>
+                </li>
+                <li><strong>Phrases often indicating an action that will trigger a dice roll start with:</strong>
+                    <code>i try to</code>, <code>i attempt to</code>, <code>i attack</code>, <code>i cast</code>, <code>i search</code>, <code>i pick</code>, <code>i climb</code>, <code>i jump</code>, <code>i sneak</code>, <code>i persuade</code>, <code>i intimidate</code>, <code>i deceive</code>, <code>i use my</code>, <code>i look for</code>, <code>i investigate</code>, <code>i disable</code>, <code>i open the</code>, <code>i move to</code>.
+                </li>
+                 <li><strong>Talking & Observing:</strong> If you're just talking to a character (e.g., <code>I ask the bartender about rumors</code>), asking the DM a question about the environment (e.g., <code>What does the scroll say?</code>), or making a general observation (e.g., <code>I look at the strange symbols</code>), a dice roll usually won't happen automatically. The DM will respond, and might then ask you to make a roll if your statement leads to a risky action.</li>
+                 <li><strong>Phrases for observation or general statements that usually don't trigger an immediate roll start with:</strong>
+                    <code>i look at</code>, <code>i see</code>, <code>i think</code>, <code>i say</code>, <code>i go to</code>, <code>i walk to</code>, <code>i head towards</code>.
+                </li>
+            </ul>
+
+            <h5>Special Commands (Type these in the input box):</h5>
+            <ul>
+                <li><code>!ask [your question]</code>: Use this to ask an out-of-character (OOC) question directly to the game AI (the Shape). For example, <code>!ask Can my character learn two spells at once?</code>. The AI will respond using its base personality, not as the DM.</li>
+                <li><code>!reset</code>: Resets the DM's long-term memory for the current adventure. Useful if the story gets stuck or want to start new adventure.</li>
+                <li><code>!wack</code>: Resets the DM's short-term memory. A softer reset than <code>!reset</code>.</li>
+                <li><code>!imagine [description]</code>: Ask the DM to generate an image based on your description (e.g., <code>!imagine a fearsome red dragon</code>).</li>
+                <li><code>!web [search query]</code>: Ask the shape to search the web for information (e.g., <code>!web D&D 5e rules for grappling</code>).</li>
+                <li><code>!info</code>: Get information about the current Shape.</li>
+                <li><code>!dashboard</code>: Access the Shape's configuration dashboard at shapes, inc.</li>
+                <li><code>!sleep</code>: Saves conversation as instant memory card.</li>
+                <li><code>!help</code>: Ask the Shape for a list of shape commands.</li>
+            </ul>
+             <h5>Tips for a Great Adventure:</h5>
+            <ul>
+                <li>Be descriptive in your actions! The more the shape knows, the better it can respond.</li>
+                <li>Don't be afraid to try creative solutions.</li>
+                <li>Use the <code>!ask</code> command if you're unsure about game rules or possibilities.</li>
+                <li>Have fun!</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-game-area">
+            <h2>The Adventure Unfolds...</h2>
+            <div id="scenarioDisplay">
+                Welcome, brave adventurer! Please enter your Shapes API Key and an initial DM Shape Username in the Settings tab to begin.
+            </div>
+            <div id="diceDisplayContainer">
+                <div id="diceDisplay">D20</div>
+            </div>
+            <h3>Chat Log</h3>
+            <div id="chatLog"></div>
+            <div id="userInputArea">
+                <textarea id="playerInput" placeholder="What do you do? (e.g., 'I try to open the chest' or '!reset')" rows="1"></textarea>
+                <button id="sendActionBtn">Send</button>
+            </div>
+            <div id="apiStatus" class="api-status">API Ready</div>
+        </div>
+        <div class="sidebar">
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'settingsTabContent', this)">Settings</button>
+                <button class="tab-button" onclick="openTab(event, 'shapesTabContent', this)">Shapes (DMs)</button>
+            </div>
+            <div id="settingsTabContent" class="tab-content active">
+                <h3>API & Initial DM Configuration</h3>
+                <label for="apiKey">Shapes API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your Shapes API Key">
+                <label for="initialShapeUsername">Vanity URL:</label>
+                <input type="text" id="initialShapeUsername" placeholder="e.g., Tenshi">
+                <button id="saveAndStartBtn">Save & Start Adventure</button>
+                <hr style="margin: 20px 0;">
+                <button id="hardResetBtn" class="danger">Hard Reset All</button>
+            </div>
+            <div id="shapesTabContent" class="tab-content">
+                <h3>Switch or Add DMs</h3>
+                <label for="newShapeUsername">Add New DM Username:</label>
+                <input type="text" id="newShapeUsername" placeholder="e.g., AnotherGreatDM">
+                <button id="addNewDmBtn" style="margin-bottom: 15px; width: 100%;">Add DM to List</button>
+                <div id="savedShapesContainer"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const SHAPES_API_BASE_URL = "https://api.shapes.inc/v1/";
+        const API_CALL_INTERVAL_MS = 12000; 
+        let apiKey = '';
+        let activeShapeUsername = '';
+        let activeShapeId = null; 
+        let userId = ''; 
+        let currentChannelId = ''; 
+        let chatHistory = []; 
+        let shapeCatalog = []; 
+        let lastApiCallTime = 0;
+        let isApiBusy = false;
+        const scenarioDisplay = document.getElementById('scenarioDisplay');
+        const diceDisplay = document.getElementById('diceDisplay');
+        const chatLog = document.getElementById('chatLog');
+        const playerInput = document.getElementById('playerInput');
+        const sendActionBtn = document.getElementById('sendActionBtn');
+        const apiStatus = document.getElementById('apiStatus');
+        const apiKeyInput = document.getElementById('apiKey');
+        const initialShapeUsernameInput = document.getElementById('initialShapeUsername');
+        const saveAndStartBtn = document.getElementById('saveAndStartBtn');
+        const hardResetBtn = document.getElementById('hardResetBtn');
+        const newShapeUsernameInput = document.getElementById('newShapeUsername');
+        const addNewDmBtn = document.getElementById('addNewDmBtn');
+        const savedShapesContainer = document.getElementById('savedShapesContainer');
+        const helpButton = document.getElementById('helpButton');
+        const guideModal = document.getElementById('guideModal');
+        const closeGuideModal = document.getElementById('closeGuideModal');
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            renderShapeCards(); 
+            updateActiveShapeDisplay();
+            if (!userId) {
+                userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+                localStorage.setItem('shapesDnd_userId', userId);
+            }
+            sendActionBtn.addEventListener('click', handleUserAction);
+            playerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserAction(); }
+            });
+            saveAndStartBtn.addEventListener('click', () => {
+                const newApiKey = apiKeyInput.value.trim();
+                const initialDmUsername = initialShapeUsernameInput.value.trim();
+                if (!newApiKey || !initialDmUsername) {
+                    alert('Please enter both your API Key and an Initial DM Shape Username.');
+                    return;
+                }
+                apiKey = newApiKey;
+                localStorage.setItem('shapesDnd_apiKey', apiKey);
+                initializeFirstShapeAndGame(initialDmUsername);
+                initialShapeUsernameInput.value = ''; 
+            });
+            hardResetBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete ALL data? This includes API key, shapes, and chat history!')) {
+                    localStorage.clear(); apiKey = ''; activeShapeUsername = ''; activeShapeId = null; userId = ''; 
+                    chatHistory = []; shapeCatalog = [];
+                    scenarioDisplay.innerHTML = "All data has been reset. Please configure your API key and initial DM in Settings.";
+                    apiKeyInput.value = ''; initialShapeUsernameInput.value = ''; newShapeUsernameInput.value = '';
+                    renderShapeCards(); renderChatLog(); updateActiveShapeDisplay();
+                }
+            });
+            addNewDmBtn.addEventListener('click', () => {
+                const newDmUsername = newShapeUsernameInput.value.trim();
+                if (newDmUsername) {
+                    addShapeToCatalog(newDmUsername);
+                    newShapeUsernameInput.value = ''; 
+                } else {
+                    alert("Please enter a username for the new DM.");
+                }
+            });
+
+            helpButton.addEventListener('click', () => {
+                guideModal.style.display = "block";
+            });
+            closeGuideModal.addEventListener('click', () => {
+                guideModal.style.display = "none";
+            });
+            window.addEventListener('click', (event) => { // Close modal if clicked outside
+                if (event.target == guideModal) {
+                    guideModal.style.display = "none";
+                }
+            });
+
+
+            openTab(null, 'settingsTabContent', document.querySelector('.tab-button[onclick*="settingsTabContent"]'));
+            if (apiKey && activeShapeId) { 
+                 scenarioDisplay.innerHTML = `Welcome back! Active (Dungeon Master) DM: ${activeShapeUsername}. Your adventure awaits, or select a DM from the 'Shapes (DMs)' tab. <br><br><b>Tip:</b> Click the <b>?</b> button in the header for game tips and commands!`;
+                 loadChatHistory(); 
+            } else {
+                 scenarioDisplay.innerHTML += "<br><br><b>Tip:</b> Click the <b>?</b> button in the header for game tips and commands!";
+            }
+        });
+
+        function openTab(event, tabName, buttonEl) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+            document.getElementById(tabName).style.display = "block";
+            const currentButton = buttonEl || (event ? event.currentTarget : null);
+            if (currentButton) currentButton.className += " active";
+        }
+        
+        function initializeFirstShapeAndGame(dmUsername) {
+            let existingShape = shapeCatalog.find(s => s.username.toLowerCase() === dmUsername.toLowerCase());
+            if (!existingShape) {
+                const newShape = { id: `shape_${Date.now()}`, username: dmUsername };
+                shapeCatalog.push(newShape);
+                saveShapeCatalog();
+                existingShape = newShape;
+            }
+            selectShape(existingShape.id, true); 
+        }
+
+        function loadSettings() {
+            apiKey = localStorage.getItem('shapesDnd_apiKey') || '';
+            apiKeyInput.value = apiKey;
+            userId = localStorage.getItem('shapesDnd_userId') || '';
+            activeShapeId = localStorage.getItem('shapesDnd_activeShapeId') || null;
+            loadShapeCatalog(); 
+            const storedActiveShape = shapeCatalog.find(s => s.id == activeShapeId);
+            if (storedActiveShape) activeShapeUsername = storedActiveShape.username;
+        }
+        function loadShapeCatalog() {
+            const storedCatalog = localStorage.getItem('shapesDnd_shapeCatalog');
+            shapeCatalog = storedCatalog ? JSON.parse(storedCatalog) : [];
+        }
+        function saveShapeCatalog() { localStorage.setItem('shapesDnd_shapeCatalog', JSON.stringify(shapeCatalog)); }
+        function loadChatHistory() {
+            if (!activeShapeId || !currentChannelId) { chatHistory = []; renderChatLog(); return; }
+            const storedHistory = localStorage.getItem(`shapesDnd_chatHistory_${activeShapeId}_${currentChannelId}`);
+            chatHistory = storedHistory ? JSON.parse(storedHistory) : [];
+            renderChatLog();
+        }
+        function saveChatHistory() {
+             if (!activeShapeId || !currentChannelId) return;
+            localStorage.setItem(`shapesDnd_chatHistory_${activeShapeId}_${currentChannelId}`, JSON.stringify(chatHistory));
+        }
+        function addShapeToCatalog(username) {
+            if (!username) return;
+            if (shapeCatalog.find(s => s.username.toLowerCase() === username.toLowerCase())) {
+                alert("A DM with this username already exists in your list.");
+                return;
+            }
+            const newShape = { id: `shape_${Date.now()}`, username: username };
+            shapeCatalog.push(newShape);
+            saveShapeCatalog(); renderShapeCards();
+            alert(`DM "${username}" added to your list. You can select them to start a new adventure.`);
+        }
+        function renderShapeCards() {
+            savedShapesContainer.innerHTML = '';
+            if (shapeCatalog.length === 0) {
+                savedShapesContainer.innerHTML = '<p style="font-size:0.9em; text-align:center;">No DMs saved yet.</p>';
+                return;
+            }
+            shapeCatalog.forEach(shape => {
+                const card = document.createElement('div');
+                card.className = 'shape-card';
+                if (shape.id === activeShapeId) card.classList.add('active-shape');
+                card.innerHTML = `<h4>${shape.username}</h4><div class="shape-card-actions"><button onclick="selectShape('${shape.id}')">Select DM</button><button onclick="editShape('${shape.id}')">Edit Name</button><button class="danger" onclick="deleteShape('${shape.id}')">Delete</button></div>`;
+                savedShapesContainer.appendChild(card);
+            });
+        }
+        function selectShape(shapeId, isInitialSetup = false) {
+            const selected = shapeCatalog.find(s => s.id === shapeId);
+            if (selected) {
+                activeShapeId = selected.id; activeShapeUsername = selected.username;
+                localStorage.setItem('shapesDnd_activeShapeId', activeShapeId);
+                currentChannelId = `dnd_game_${activeShapeUsername.replace(/[^a-zA-Z0-9_]/g, '_')}_${Date.now()}`;
+                chatHistory = []; 
+                
+                if (apiKey) {
+                     scenarioDisplay.innerHTML = `Selected DM: ${activeShapeUsername}. Preparing your adventure...`;
+                     startGameWithDM();
+                } else {
+                    scenarioDisplay.innerHTML = `Selected DM: ${activeShapeUsername}. API Key not found. Please check Settings.`;
+                }
+                renderShapeCards(); updateActiveShapeDisplay();
+                if (isInitialSetup) { 
+                    const dmTabButton = document.querySelector('.tab-button[onclick*="shapesTabContent"]');
+                    if (dmTabButton) openTab(null, 'shapesTabContent', dmTabButton);
+                }
+            }
+        }
+        function editShape(shapeId) {
+            const shape = shapeCatalog.find(s => s.id === shapeId);
+            if (shape) {
+                const newUsername = prompt("Enter new username for this DM:", shape.username);
+                if (newUsername && newUsername.trim() !== "" && newUsername.trim() !== shape.username) {
+                    if (shapeCatalog.find(s => s.username.toLowerCase() === newUsername.trim().toLowerCase() && s.id !== shapeId)) {
+                        alert("Another DM with this username already exists.");
+                        return;
+                    }
+                    shape.username = newUsername.trim();
+                    saveShapeCatalog(); renderShapeCards();
+                    if (shape.id === activeShapeId) { 
+                        activeShapeUsername = shape.username; updateActiveShapeDisplay();
+                        scenarioDisplay.innerHTML = `DM name changed to ${activeShapeUsername}. The current adventure context might be affected if you continue, or you can use !reset for a fresh start with this DM.`;
+                    }
+                }
+            }
+        }
+        function deleteShape(shapeId) {
+            if (confirm(`Are you sure you want to delete the DM "${shapeCatalog.find(s=>s.id===shapeId)?.username || 'this DM'}"? This will also delete their associated chat history for the current session type if it's active.`)) {
+                shapeCatalog = shapeCatalog.filter(s => s.id !== shapeId);
+                saveShapeCatalog();
+                if (activeShapeId === shapeId) {
+                    localStorage.removeItem(`shapesDnd_chatHistory_${activeShapeId}_${currentChannelId}`); 
+                    activeShapeId = null; activeShapeUsername = ''; localStorage.removeItem('shapesDnd_activeShapeId');
+                    currentChannelId = ''; scenarioDisplay.innerHTML = "Active DM was deleted. Please select or add a new one from Settings or the Shapes (DMs) tab.";
+                    chatHistory = []; renderChatLog();
+                }
+                renderShapeCards(); updateActiveShapeDisplay();
+            }
+        }
+        function updateActiveShapeDisplay() {
+             const activeShapeInfo = document.querySelector('.main-game-area h2');
+             activeShapeInfo.textContent = activeShapeUsername ? `Adventure with ${activeShapeUsername}...` : `The Adventure Unfolds...`;
+        }
+        async function startGameWithDM() {
+            if (!apiKey || !activeShapeUsername) {
+                scenarioDisplay.innerHTML = "Please set your API key and select an active Shape DM first."; return;
+            }
+            chatHistory = []; 
+            addMessageToChat('system', `Starting new adventure with DM: ${activeShapeUsername}...`);
+            scenarioDisplay.innerHTML = "The DM is conjuring your world...";
+            const initialPromptObject = {
+                role: "user",
+                content: `
+                ATTENTION! For this session, you will adopt a specific persona for narrating our Dungeons & Dragons game: your DM name is ${activeShapeUsername}.
+                However, remember that underneath this DM persona, you are a Shape from shapes.inc, and you have your own unique base personality, memories, and characteristics.
+
+                **Your Role as Dungeon Master (${activeShapeUsername}):**
+                1.  **World Weaver:** As ${activeShapeUsername}, create and describe a vivid fantasy world for our D&D game.
+                2.  **Storyteller:** As ${activeShapeUsername}, narrate the story, plots, and quests.
+                3.  **Character Actor:** As ${activeShapeUsername}, portray Non-Player Characters (NPCs) with distinct personalities.
+                4.  **Challenge Presenter:** As ${activeShapeUsername}, introduce obstacles, puzzles, and encounters.
+                5.  **Arbiter of Actions:** As ${activeShapeUsername}, describe outcomes. If a dice roll is provided, YOU MUST incorporate it into your narration (high roll = success, low roll = failure/consequence, mid-range = partial success/complication).
+                6.  **Maintain Immersion (as DM):** While narrating game events as ${activeShapeUsername}, stay in that character. Do NOT mention being an AI for game content.
+                7.  **Guide the Player (as DM):** As ${activeShapeUsername}, conclude narrative responses by asking the Player what they do next.
+                8.  **Contextual Dice Rolls (as DM):** As ${activeShapeUsername}, understand that rolls are for actions with uncertain outcomes. If the player asks a question or makes a general statement, respond naturally. If their statement implies an action needing a roll, you can prompt them.
+                9.  **Out-of-Character Questions with \`!ask\` (as your Shape self):**
+                    *   If the Player uses the \`!ask [question]\` command, this is an OOC (Out-Of-Character) question directed at YOU, the Shape AI.
+                    *   For these \`!ask\` questions ONLY:
+                        *   Respond directly to the player, not as the DM ${activeShapeUsername}.
+                        *   Use your **own original Shape personality** from shapes.inc to answer.
+                        *   Keep your answer concise and helpful for game clarification.
+                        *   Do NOT ask "What do you do next?" after an \`!ask\` response. Simply provide your answer using your base Shape personality.
+
+                **Game Start (as DM ${activeShapeUsername}):**
+                You are now ${activeShapeUsername}. I am your Player.
+                Begin our adventure. Describe the initial setting and the very first situation or challenge my character faces.
+                Remember to end by asking me what I do.
+                Let the epic tale commence!
+                `
+            };
+            const responseContent = await callShapesApi([initialPromptObject]);
+            if (responseContent) {
+                const processedContent = processMediaInContent(responseContent);
+                scenarioDisplay.innerHTML = processedContent;
+                addMessageToChat('shape', processedContent);
+            } else {
+                scenarioDisplay.innerHTML = "Failed to start the game. Check console for errors and API Key/Shape settings.";
+            }
+        }
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe;
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function processMediaInContent(content) {
+            if (typeof content !== 'string') return content;
+            let processed = content;
+            const urlRegex = /(https?:\/\/[^\s<>"]+?\.(png|mp3|jpeg|jpg|gif|wav|ogg))/gi;
+            processed = processed.replace(urlRegex, (match, url, extension) => {
+                const cleanUrl = escapeHtml(url); 
+                const extLower = extension.toLowerCase();
+                if (['png', 'jpeg', 'jpg', 'gif'].includes(extLower)) {
+                    return `<img src="${cleanUrl}" alt="Image from DM" style="max-width:100%;display:block;margin:10px auto;border-radius:4px;">`;
+                } else if (['mp3', 'wav', 'ogg'].includes(extLower)) {
+                    return `<audio controls src="${cleanUrl}" style="width:100%;margin:10px 0;">Your browser does not support the audio element. Direct link: <a href="${cleanUrl}" target="_blank">${cleanUrl}</a></audio>`;
+                }
+                return match; 
+            });
+            return processed;
+        }
+        async function handleUserAction() {
+            if (!apiKey || !activeShapeUsername) {
+                scenarioDisplay.innerHTML = "Cannot send action: API Key or Active Shape DM not set.";
+                addMessageToChat('system', "Error: API Key or Active Shape DM not set."); return;
+            }
+            if (isApiBusy) { addMessageToChat('system', "DM is still thinking... Please wait."); return; }
+            const actionText = playerInput.value.trim();
+            if (!actionText) return;
+            addMessageToChat('user', actionText, `msg_user_${Date.now()}`); 
+            playerInput.value = ''; playerInput.style.height = 'auto'; 
+            let promptToShapeContent = actionText;
+            let messagesForApi = [];
+            let requiresDiceRoll = false;
+            const lowerActionText = actionText.toLowerCase();
+
+            if (lowerActionText.startsWith('!ask ')) {
+                requiresDiceRoll = false;
+                const questionForShape = actionText.substring(5).trim(); 
+                promptToShapeContent = `
+                The Player has an OOC (Out-Of-Character) question for you, the Shape AI.
+                Player's question: "${questionForShape}"
+
+                IMPORTANT: For this response ONLY:
+                1.  Step out of your current DM persona (${activeShapeUsername}).
+                2.  Respond using your **own original base personality** as a Shape from shapes.inc.
+                3.  Answer the player's question directly and concisely.
+                4.  Do NOT ask "What do you do next?" or try to continue the D&D game narration in this specific reply.
+                After this, you will resume your DM persona for subsequent game interactions.
+                `;
+            }
+            else if (lowerActionText.startsWith('!')) { 
+                requiresDiceRoll = false;
+                promptToShapeContent = actionText; 
+            }
+            else if (actionText.endsWith('?')) {
+                requiresDiceRoll = false;
+                promptToShapeContent = `
+                Okay, Dungeon Master ${activeShapeUsername}. I, your Player, am asking a question or interacting within the game:
+                "${actionText}" (This is an in-game question or statement to an NPC or about the environment, NOT an OOC question to the AI).
+
+                As the Dungeon Master ${activeShapeUsername}, your task is to:
+                1.  Respond in character as ${activeShapeUsername} or as the relevant NPC.
+                2.  If my question implies an action that requires a chance of success/failure (e.g., "Can I jump the chasm?"), describe the situation and then prompt me to state my action clearly if I wish to attempt it (e.g., "The chasm is wide and dangerous. Do you attempt to jump it?").
+                3.  Conclude by clearly asking me, "What do you do next?" or a similar direct question, or by prompting for an action if appropriate.
+                Stay in your DM persona of ${activeShapeUsername}.
+                `;
+            }
+            else {
+                const actionKeywords = ["i try to","i attempt to","i attack","i cast","i search","i pick","i climb","i jump","i sneak","i persuade","i intimidate","i deceive","i use my","i look for","i investigate","i disable","i open the","i move to"];
+                const passiveKeywords = ["i look at","i see","i think","i say","i go to","i walk to","i head towards"];
+                let isLikelyAction = actionKeywords.some(keyword => lowerActionText.startsWith(keyword));
+                let isLikelyPassive = passiveKeywords.some(keyword => lowerActionText.startsWith(keyword));
+                if (isLikelyAction || (!isLikelyPassive && actionText.split(' ').length > 2 && (lowerActionText.includes(" the ") || lowerActionText.includes(" a "))) ) {
+                    requiresDiceRoll = true;
+                } else {
+                    requiresDiceRoll = false; 
+                     promptToShapeContent = `
+                    Okay, Dungeon Master ${activeShapeUsername}. I, your Player, have made a statement or are performing a general in-game action that may not require a dice roll:
+                    "${actionText}"
+
+                    As the Dungeon Master ${activeShapeUsername}, your task is to:
+                    1.  Narrate what happens or how NPCs react to this, staying in your DM persona.
+                    2.  If this statement could lead to an action that DOES require a roll (e.g., player says "I want to open the door" and the door is locked), describe the situation and then prompt me to state my specific attempt if I wish to proceed (e.g., "The door appears to be locked. Do you try to force it open, pick the lock, or something else?").
+                    3.  Conclude by clearly asking me, "What do you do next?" or a similar direct question.
+                    Stay in your DM persona of ${activeShapeUsername}.
+                    `;
+                }
+            }
+
+            if (requiresDiceRoll) {
+                const diceRoll = await rollDice();
+                addMessageToChat('system', `Player rolled a D20: ${diceRoll}`);
+                promptToShapeContent = `
+                Okay, Dungeon Master ${activeShapeUsername}. I, your Player, have taken an in-game action.
+                My character attempts to: "${actionText}".
+                The D20 dice roll result for this action is: ${diceRoll}.
+
+                As the Dungeon Master ${activeShapeUsername}, your task is to:
+                1.  Narrate the outcome of my action, CONSIDERING the dice roll (${diceRoll}). A high roll (e.g., 15-20) generally means success. A low roll (e.g., 1-7) generally means failure or a negative consequence. A mid-range roll (e.g., 8-14) might mean partial success, success with a cost, or a more neutral outcome. Use your DM discretion.
+                2.  Describe what happens in the game world as a result. Be descriptive.
+                3.  Explain any consequences, positive or negative.
+                4.  Set the new scene or update the current situation.
+                5.  Conclude by clearly asking me, "What do you do next?" or a similar direct question.
+                Stay in your DM persona of ${activeShapeUsername}.
+                `;
+            }
+            
+            messagesForApi.push({ role: "user", content: promptToShapeContent });
+            const responseContent = await callShapesApi(messagesForApi);
+            if (responseContent) {
+                const processedContent = processMediaInContent(responseContent);
+                scenarioDisplay.innerHTML = processedContent; 
+                addMessageToChat('shape', processedContent, `msg_shape_${Date.now()}`);
+            }
+        }
+        async function rollDice(sides = 20) {
+            diceDisplay.textContent = '...'; 
+            const spinDuration = 800 + Math.random() * 400; 
+            const spinIntervalTime = 70; 
+            return new Promise(resolve => {
+                const spinInterval = setInterval(() => { diceDisplay.textContent = Math.ceil(Math.random() * sides); }, spinIntervalTime);
+                setTimeout(() => {
+                    clearInterval(spinInterval);
+                    const finalResult = Math.ceil(Math.random() * sides);
+                    diceDisplay.textContent = finalResult; resolve(finalResult);
+                }, spinDuration);
+            });
+        }
+        async function callShapesApi(messages) {
+            const now = Date.now();
+            if (now - lastApiCallTime < API_CALL_INTERVAL_MS) {
+                const waitTime = API_CALL_INTERVAL_MS - (now - lastApiCallTime);
+                apiStatus.textContent = `API: Wait ${Math.ceil(waitTime/1000)}s`;
+                addMessageToChat('system', `Rate limit: waiting ${Math.ceil(waitTime/1000)}s...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+            isApiBusy = true; sendActionBtn.disabled = true; sendActionBtn.textContent = 'Thinking...'; 
+            apiStatus.textContent = 'API: DM is thinking...';
+            try {
+                lastApiCallTime = Date.now();
+                const response = await fetch(`${SHAPES_API_BASE_URL}chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'X-User-Id': userId, 'X-Channel-Id': currentChannelId || `dnd_game_${activeShapeUsername.replace(/[^a-zA-Z0-9_]/g, '_')}` },
+                    body: JSON.stringify({ model: `shapesinc/${activeShapeUsername}`, messages: messages })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                    const errorMessage = errorData.error?.message || errorData.message || response.statusText || 'Unknown API error';
+                    addMessageToChat('system', `API Error: ${errorMessage}`);
+                    scenarioDisplay.innerHTML = `An error occurred with the DM: ${errorMessage}. Check console.`; return null;
+                }
+                const data = await response.json();
+                if (data.choices && data.choices[0] && data.choices[0].message) return data.choices[0].message.content;
+                else {
+                    addMessageToChat('system', `API Error: Received invalid data from DM.`);
+                    scenarioDisplay.innerHTML = `The DM gave an unusual response. Check console.`; return null;
+                }
+            } catch (error) {
+                addMessageToChat('system', `Network Error: ${error.message}`);
+                scenarioDisplay.innerHTML = `A network error occurred: ${error.message}. Check console.`; return null;
+            } finally {
+                isApiBusy = false; sendActionBtn.disabled = false; sendActionBtn.textContent = 'Send'; 
+                apiStatus.textContent = 'API Ready';
+            }
+        }
+        function addMessageToChat(role, content, id = `msg_${role}_${Date.now()}`) {
+            const contentToStore = (role === 'user') ? content : processMediaInContent(content);
+            chatHistory.push({ id, role, content: contentToStore }); 
+            renderChatLog(); saveChatHistory(); 
+        }
+        function renderChatLog() {
+            chatLog.innerHTML = '';
+            chatHistory.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.classList.add('chat-message');
+                msgDiv.classList.add(msg.role === 'user' ? 'user-message' : msg.role === 'shape' ? 'shape-message' : 'system-message');
+                msgDiv.dataset.messageId = msg.id;
+                let roleDisplay = msg.role === 'user' ? 'You' : (msg.role === 'shape' ? (activeShapeUsername || 'DM') : 'System');
+                let messageContentHTML = `<span class="message-role">${roleDisplay}:</span> ${msg.content}`; 
+                let actionsHTML = '<div class="actions">';
+                if (msg.role === 'user') actionsHTML += `<button onclick="editChatMessage('${msg.id}')" title="Edit Message">📝</button>`;
+                if (msg.role === 'shape') actionsHTML += `<button onclick="regenerateShapeMessage('${msg.id}')" title="Regenerate Response">🔄</button>`;
+                actionsHTML += `<button class="danger" onclick="deleteChatMessage('${msg.id}')" title="Delete Message">🗑️</button></div>`;
+                msgDiv.innerHTML = messageContentHTML; 
+                chatLog.appendChild(msgDiv);
+            });
+            chatLog.scrollTop = chatLog.scrollHeight; 
+        }
+        function deleteChatMessage(messageId) {
+            chatHistory = chatHistory.filter(msg => msg.id !== messageId);
+            renderChatLog(); saveChatHistory();
+        }
+        function editChatMessage(messageId) {
+            const messageIndex = chatHistory.findIndex(msg => msg.id === messageId);
+            if (messageIndex === -1 || chatHistory[messageIndex].role !== 'user') return;
+            let currentContentForEdit = chatHistory[messageIndex].content;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = currentContentForEdit;
+            const textForEditing = tempDiv.textContent || tempDiv.innerText || "";
+            const newContent = prompt("Edit your message:", textForEditing);
+            if (newContent !== null && newContent.trim() !== textForEditing.trim()) {
+                chatHistory[messageIndex].content = newContent.trim(); 
+                renderChatLog(); saveChatHistory();
+                addMessageToChat('system', 'Note: Editing a past message only updates the log locally. The DM will not be aware of this change for past turns.');
+            }
+        }
+        async function regenerateShapeMessage(messageId) {
+            const messageIndex = chatHistory.findIndex(msg => msg.id === messageId);
+            if (messageIndex > 0 && chatHistory[messageIndex].role === 'shape') {
+                let lastUserPromptIndex = -1;
+                for (let i = messageIndex - 1; i >= 0; i--) {
+                    if (chatHistory[i].role === 'user' && !chatHistory[i].content.startsWith('!')) { lastUserPromptIndex = i; break; }
+                }
+                if (lastUserPromptIndex === -1) { addMessageToChat('system', "Cannot regenerate: No suitable prior user action found."); return; }
+                if (isApiBusy) { addMessageToChat('system', "DM is busy. Cannot regenerate now."); return; }
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = chatHistory[lastUserPromptIndex].content;
+                const originalUserAction = tempDiv.textContent || tempDiv.innerText || "";
+                addMessageToChat('system', `Attempting to regenerate response for your action: "${originalUserAction.substring(0,50)}..."`);
+                let diceRollForRegenContext = "";
+                if (lastUserPromptIndex > 0 && chatHistory[lastUserPromptIndex -1].role === 'system' && chatHistory[lastUserPromptIndex -1].content.includes("Player rolled a D20:")) {
+                    const match = chatHistory[lastUserPromptIndex -1].content.match(/Player rolled a D20: (\d+)/);
+                    if (match && match[1]) diceRollForRegenContext = `You previously rolled a D20 and got ${match[1]}. `;
+                }
+                const regenerationPrompt = `${diceRollForRegenContext}You took the action: "${originalUserAction}". The Dungeon Master's previous response was not what you wanted. Please provide an alternative narration or outcome for this action. Then, ask what you (the player) want to do next. (Respond as DM ${activeShapeUsername})`;
+                const responseContent = await callShapesApi([{ role: "user", content: regenerationPrompt }]);
+                if (responseContent) {
+                    const processedContent = processMediaInContent(responseContent);
+                    chatHistory[messageIndex].content = processedContent; 
+                    chatHistory[messageIndex].id = `msg_shape_${Date.now()}`; 
+                    renderChatLog(); saveChatHistory();
+                    scenarioDisplay.innerHTML = processedContent; 
+                } else {
+                    addMessageToChat('system', "Failed to regenerate response.");
+                }
+            } else {
+                addMessageToChat('system', "Cannot regenerate this message. (Not a shape response or no preceding user message).");
+            }
+        }
+        playerInput.addEventListener('input', () => {
+            playerInput.style.height = 'auto';
+            playerInput.style.height = (playerInput.scrollHeight) + 'px';
+        });
+    </script>
+</body>
+</html>
